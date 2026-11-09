@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nordsjøen Tycoon</title>
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #081827;
+  color: white;
+}
+
+header {
+  background: #102c43;
+  padding: 22px;
+  text-align: center;
+  border-bottom: 3px solid #20c997;
+}
+
+header h1 {
+  color: #20c997;
+  font-size: 32px;
+  margin: 5px;
+}
+
+.stats {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin: 20px;
+}
+
+.stat {
+  background: #193c55;
+  padding: 15px 25px;
+  border-radius: 12px;
+  border: 1px solid #20c997;
+}
+
+main {
+  max-width: 850px;
+  margin: auto;
+  padding: 15px;
+}
+
+.card {
+  background: #142f46;
+  padding: 25px;
+  border-radius: 18px;
+  margin-bottom: 20px;
+  border: 1px solid #31536c;
+  box-shadow: 0 5px 20px #0005;
+}
+
+.scene {
+  font-size: 75px;
+  text-align: center;
+  padding: 25px;
+  background: linear-gradient(#126080,#0b263c);
+  border-radius: 15px;
+}
+
+h2 { color: #20c997; }
+
+button {
+  background: #20c997;
+  color: #062a27;
+  border: none;
+  padding: 14px 20px;
+  border-radius: 10px;
+  font-weight: bold;
+  font-size: 15px;
+  cursor: pointer;
+  margin: 5px;
+}
+
+button:hover {
+  background: #65edc2;
+  transform: scale(1.03);
+}
+
+button:disabled {
+  background: #64748b;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.progress {
+  height: 15px;
+  background: #334b60;
+  border-radius: 20px;
+  overflow: hidden;
+  margin: 15px 0;
+}
+
+.bar {
+  height: 100%;
+  background: #20c997;
+  width: 0%;
+  transition: .3s;
+}
+
+.option {
+  display: block;
+  width: 100%;
+  margin: 10px 0;
+  text-align: left;
+}
+
+.hidden { display: none; }
+
+#message {
+  color: #65edc2;
+  font-weight: bold;
+  min-height: 25px;
+}
+
+footer {
+  text-align: center;
+  padding: 25px;
+  color: #8da8ba;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>🛢️ NORDSJØEN TYCOON</h1>
+  <p>Fra havbunnen til Mongstad!</p>
+</header>
+
+<div class="stats">
+  <div class="stat">⭐ XP: <span id="xp">0</span></div>
+  <div class="stat">🛢️ Olje: <span id="oil">0</span></div>
+  <div class="stat">🏆 Level: <span id="level">1</span></div>
+</div>
+
+<main>
+
+<div class="card">
+  <h2 id="mission">MISSION 1: OLJEPLATTFORMEN</h2>
+  <div class="progress">
+    <div class="bar" id="progress"></div>
+  </div>
+  <p id="description">
+    Du er nyansatt på en oljeplattform i Nordsjøen.
+    Samle olje for å starte produksjonen!
+  </p>
+</div>
+
+<div class="card">
+  <div class="scene" id="scene">🏗️ 🌊 🛢️</div>
+  <h2 id="location">OLJEPLATTFORMEN</h2>
+  <p id="story">
+    Det finnes olje og naturgass under havbunnen.
+    Klarer du å samle nok råstoff?
+  </p>
+
+  <div id="actions">
+    <button onclick="collectOil()">⛏️ Hent opp olje</button>
+  </div>
+
+  <p id="message"></p>
+</div>
+
+<!-- QUIZ -->
+<div class="card hidden" id="quiz">
+  <h2>🧠 KJEMI-CHALLENGE</h2>
+  <p id="question"></p>
+  <div id="answers"></div>
+  <p id="feedback"></p>
+</div>
+
+<div class="card">
+  <h2>📚 LÆR NOE NYTT</h2>
+  <p><b>Hydrokarboner:</b> Kjemiske forbindelser som bare består av karbon (C) og hydrogen (H).</p>
+  <p><b>Metan CH₄:</b> Hovedbestanddelen i naturgass.</p>
+  <p><b>Etan C₂H₆:</b> Brukes som råstoff i kjemisk industri.</p>
+  <p><b>Propan C₃H₈:</b> Brukes blant annet som brensel.</p>
+  <p><b>Butan C₄H₁₀:</b> Brukes blant annet i lightergass.</p>
+  <p><b>Destillasjon:</b> Skiller stoffer etter kokepunktene deres.</p>
+  <p><b>Cracking:</b> Bryter store hydrokarbonmolekyler ned til mindre molekyler.</p>
+</div>
+
+</main>
+
+<footer>
+  NORDSJØEN TYCOON © 2026 | Lær kjemi mens du spiller
+</footer>
+
+<script>
+let xp = 0;
+let oil = 0;
+let stage = 1;
+let collected = 0;
+let quizIndex = 0;
+let quizScore = 0;
+
+const questions = [
+ {
+  q: "Hva er hovedbestanddelen i naturgass?",
+  a: ["Metan", "Propan", "Butan"],
+  correct: 0
+ },
+ {
+  q: "Hva består hydrokarboner av?",
+  a: ["Oksygen og vann", "Karbon og hydrogen", "Nitrogen og oksygen"],
+  correct: 1
+ },
+ {
+  q: "Hva skjer i et oljeraffineri?",
+  a: ["Olje fryses", "Olje blir til vann", "Råolje blir bearbeidet til produkter"],
+  correct: 2
+ },
+ {
+  q: "Hva brukes destillasjon til?",
+  a: ["Å skille stoffer etter kokepunkt", "Å lage elektrisitet", "Å lage salt"],
+  correct: 0
+ },
+ {
+  q: "Hva er råolje?",
+  a: ["Rent vann", "En blanding av hydrokarboner", "Bare metan"],
+  correct: 1
+ }
+];
+
+function updateStats() {
+ document.getElementById("xp").textContent = xp;
+ document.getElementById("oil").textContent = oil;
+ document.getElementById("level").textContent = stage;
+}
+
+function updateProgress(value) {
+ document.getElementById("progress").style.width =
+ Math.min(value,100) + "%";
+}
+
+function collectOil() {
+ if (collected >= 5) return;
+
+ collected++;
+ oil += 10;
+ xp += 20;
+
+ updateStats();
+ updateProgress(collected * 20);
+
+ document.getElementById("message").textContent =
+ "Bra jobbet! Du samlet 10 enheter olje! +20 XP";
+
+ if (collected === 5) {
+  document.getElementById("message").textContent =
+  "🎉 Du har samlet nok olje! Neste oppdrag låses opp.";
+
+  document.getElementById("actions").innerHTML =
+  '<button onclick="nextStage()">🚢 Send oljen til land</button>';
+ }
+}
+
+function nextStage() {
+ stage = 2;
+ updateStats();
+
+ document.getElementById("mission").textContent =
+ "MISSION 2: TRANSPORT";
+
+ document.getElementById("scene").textContent = "🚢 🌊 🛢️";
+
+ document.getElementById("location").textContent =
+ "OLJETANKSKIPET";
+
+ document.getElementById("description").textContent =
+ "Nå skal råoljen fraktes til raffineriet.";
+
+ document.getElementById("story").textContent =
+ "Oljen transporteres fra Nordsjøen til land via rørledninger eller skip.";
+
+ document.getElementById("message").textContent = "";
+
+ document.getElementById("actions").innerHTML =
+ '<button onclick="transport()">🚢 Transporter råoljen</button>';
+}
+
+function transport() {
+ xp += 100;
+ updateStats();
+
+ document.getElementById("message").textContent =
+ "Transport fullført! +100 XP";
+
+ document.getElementById("actions").innerHTML =
+ '<button onclick="refinery()">🏭 Gå til Mongstad</button>';
+}
+
+function refinery() {
+ stage = 3;
+ updateStats();
+
+ document.getElementById("mission").textContent =
+ "MISSION 3: RAFFINERIET";
+
+ document.getElementById("scene").textContent = "🏭 ⚗️ 🔥";
+
+ document.getElementById("location").textContent =
+ "MONGSTAD RAFFINERI";
+
+ document.getElementById("description").textContent =
+ "Velkommen til raffineriet! Her skal råoljen bearbeides.";
+
+ document.getElementById("story").textContent =
+ "Destillasjonskolonnen skiller ulike stoffer etter kokepunkt. Velg riktig produkt til riktig nivå!";
+
+ document.getElementById("message").textContent = "";
+
+ document.getElementById("actions").innerHTML = `
+ <p>Hvilket produkt finner vi typisk øverst i en destillasjonskolonne?</p>
+ <button onclick="refineryAnswer(0)">Diesel</button>
+ <button onclick="refineryAnswer(1)">Gasser</button>
+ <button onclick="refineryAnswer(2)">Tunge rester</button>
+ `;
+}
+
+function refineryAnswer(answer) {
+ if (answer === 1) {
+  xp += 150;
+  document.getElementById("message").textContent =
+  "Riktig! De letteste stoffene stiger til toppen. +150 XP";
+ } else {
+  document.getElementById("message").textContent =
+  "Prøv igjen! De letteste stoffene havner øverst.";
+  return;
+ }
+
+ updateStats();
+
+ document.getElementById("actions").innerHTML =
+ '<button onclick="startQuiz()">🧠 Start kjemi-testen</button>';
+}
+
+function startQuiz() {
+ document.getElementById("quiz").classList.remove("hidden");
+ document.getElementById("quiz").scrollIntoView({
+  behavior: "smooth"
+ });
+ showQuestion();
+}
+
+function showQuestion() {
+ const q = questions[quizIndex];
+
+ document.getElementById("question").textContent =
+ (quizIndex + 1) + "/5: " + q.q;
+
+ document.getElementById("feedback").textContent = "";
+
+ const container = document.getElementById("answers");
+ container.innerHTML = "";
+
+ q.a.forEach((answer, i) => {
+  const button = document.createElement("button");
+  button.className = "option";
+  button.textContent = answer;
+  button.onclick = () => checkAnswer(i);
+  container.appendChild(button);
+ });
+}
+
+function checkAnswer(choice) {
+ const q = questions[quizIndex];
+
+ const buttons = document.querySelectorAll("#answers button");
+ buttons.forEach(button => button.disabled = true);
+
+ if (choice === q.correct) {
+  quizScore++;
+  xp += 100;
+  document.getElementById("feedback").textContent =
+  "✅ Riktig! +100 XP";
+ } else {
+  document.getElementById("feedback").textContent =
+  "❌ Ikke helt! Riktig svar: " + q.a[q.correct];
+ }
+
+ updateStats();
+
+ const next = document.createElement("button");
+ next.textContent = quizIndex === 4 ?
+ "🏆 Se resultat" : "Neste spørsmål →";
+
+ next.onclick = () => {
+  quizIndex++;
+
+  if (quizIndex < questions.length) {
+   showQuestion();
+  } else {
+   finishGame();
+  }
+ };
+
+ document.getElementById("answers").appendChild(next);
+}
+
+function finishGame() {
+ stage = 4;
+ updateStats();
+
+ document.getElementById("quiz").innerHTML = `
+ <h2>🏆 MISSION COMPLETE!</h2>
+ <div class="scene">🥇 🎉 🛢️</div>
+ <h2>Du er en Mongstad-ekspert!</h2>
+ <p>Du fikk ${quizScore} av 5 riktige svar.</p>
+ <p>XP: ${xp}</p>
+ <button onclick="location.reload()">🔄 Spill igjen</button>
+ `;
+
+ document.getElementById("mission").textContent =
+ "ALLE OPPDRAG FULLFØRT!";
+ document.getElementById("description").textContent =
+ "Gratulerer! Du har reist fra Nordsjøen til Mongstad.";
+ document.getElementById("actions").innerHTML = "";
+ document.getElementById("message").textContent =
+ "Du har fullført Nordsjøen Tycoon!";
+ updateProgress(100);
+}
+
+updateStats();
+</script>
+
+</body>
+</html>
